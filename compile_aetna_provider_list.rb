@@ -39,30 +39,33 @@ def next_page!
   sleep(2)
 end
 
-def process_record(clinic)
-  clinic["phone_number"] = clinic["phone_number"]&.split(".")&.join(" ")
-  new_line_before = ["Speciality", "In patient", "Out patient"]
-  new_line_before.each{|word| clinic["type"]&.gsub(word, "\n#{word}")}
+def multiline(element, separator)
+  element.all("div").map(&:text).select{|s| s.length > 0}.join(separator)
 end
 
 def fetch_data
   page.all("tbody tr:first-child").map do |el|
-    %w(name address type phone_number).zip(el.all("td").map(&:text)).to_h.tap{|h| process_record(h)}
+    {
+      "name"         => el.all("td")[0].text,
+      "address"      => multiline(el.all("td")[1], ", "),
+      "type"         => multiline(el.all("td")[2], "\n"),
+      "phone_number" => el.all("td")[3].text&.split(".")&.join(" ")
+    }
   end
 end
 
 def write_to_csv(arr_of_hsh, to:)
   CSV.open(to, "w") do |csv|
     csv << %w(Name Address Description Phone Latitude Longitude)
-    arr_of_hsh.each {|hsh| csv << hsh.values_at(%w(name address type phone_number lat long))}
+    arr_of_hsh.each {|hsh| csv << hsh.values_at(*%w(name address type phone_number lat lng))}
   end
 end
 
 def geocode_address(address, google_api_key)
-  address =URI.encode address #address.split(" ").join("+")
+  address =URI.encode address #address.sqplit(" ").join("+")
   coords = JSON.parse(Net::HTTP.get(URI.parse "https://maps.googleapis.com/maps/api/geocode/json?address=#{address}&key=#{google_api_key}"))
   if coords["results"].empty?
-    {"lat" => nil, "long" => nil}
+    {"lat" => nil, "lng" => nil}
   else
     coords["results"].first["geometry"]["location"]
   end
@@ -72,7 +75,7 @@ def geocode_addresses(data, google_api_key)
   pbar = ProgressBar.new(data.count)
   data.each do |hsh|
     pbar.increment!
-    hsh.merge geocode_address(hsh["address"], google_api_key)
+    hsh.merge! geocode_address(hsh["address"], google_api_key)
   end
 end
 
@@ -99,7 +102,7 @@ begin
       break
     end
   end
-  geocode_addresses(data, google_api_key)
+  #geocode_addresses(data, google_api_key)
   write_to_csv(data, to: "aetna.csv")
 rescue => e
   save_and_open_screenshot
