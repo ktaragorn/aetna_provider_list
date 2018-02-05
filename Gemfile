@@ -3,6 +3,7 @@ source "https://rubygems.org"
 
 # gem "rails"
 gem 'capybara'
-gem "capybara-webkit"
+gem "poltergeist"
 gem "launchy"
 gem "pry"
+gem "progress_bar"
