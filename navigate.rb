@@ -18,3 +18,12 @@ def fill_in_country_city(country, city)
   click_button "Search"
   sleep(15)
 end
+
+def got_next_page?
+  !page.all("a.pagination-underline")[-2][:class].include? "disabled"
+end
+
+def next_page!
+  page.find("a.pagination-underline", text: "Next").click
+  sleep(2)
+end

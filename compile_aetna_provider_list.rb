@@ -12,12 +12,7 @@ username = ""
 password = ""
 google_api_key = ""
 
-# TODO
-# Fix address reliably
-# First page downloaded twice
-# try first section only - road address
-
-data = []
+data = Set.new
 begin
   login(username, password)
   visit_page("/members/find-healthcare.do")
@@ -39,10 +34,10 @@ begin
   #geocode_addresses(data, google_api_key)
   write_to_csv(data, to: "aetna.csv")
 rescue => e
-  save_and_open_screenshot
+  screenshot
   binding.pry
   puts "hi"
 end
-# save_and_open_screenshot
+# screenshot
 #   binding.pry
 #   puts "hi"

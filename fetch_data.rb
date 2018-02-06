@@ -1,14 +1,5 @@
-def got_next_page?
-  !page.all("a.pagination-underline")[-2][:class].include? "disabled"
-end
-
-def next_page!
-  page.find("a.pagination-underline", text: "Next").click
-  sleep(2)
-end
-
 def multiline(element, separator)
-  element.all("div").map(&:text).select{|s| s.length > 0}.join(separator)
+  element.all("div").reject{|el| !el.first("div").nil?}.map(&:text).select{|s| s.length > 0}.join(separator)
 end
 
 def fetch_data
@@ -18,7 +9,7 @@ def fetch_data
       "name"         => tds[0].text,
       "map_address"  => tds[1].first("div").text + ", Singapore",
       "address"      => multiline(tds[1], ", "),
-      "type"         => multiline(tds[2], "\n"),
+      "type"         => multiline(tds[2], "\n"), # some lines are repeated since this code finds nested divs
       "phone_number" => tds[3].text&.split(".")&.join(" ")
     }
   end

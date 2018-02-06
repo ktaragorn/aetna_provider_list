@@ -10,3 +10,7 @@ page.driver.headers  = {'User-Agent' => 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64;
 def visit_page(path)
   visit("https://int.aetnainternational.com#{path}")
 end
+
+def screenshot
+  save_and_open_screenshot(nil, full: true)
+end
